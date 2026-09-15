@@ -5,12 +5,19 @@ and loads it into Postgres for querying and analysis.
 
 **Architecture:** API fetch (Python/yfinance) → raw storage → PySpark (transform) → Postgres (load)
 
-## Status
-- [x] Phase 0: Environment setup (Dockerized Spark + Postgres)
-- [x] Phase 1: Extract (yfinance → raw CSVs)
-- [ ] Phase 2: Transform (PySpark cleaning + derived metrics)
-- [ ] Phase 3: Load (write to Postgres via JDBC)
-- [ ] Phase 4: Orchestrate (single end-to-end pipeline script)
+```mermaid
+flowchart LR
+    A[yfinance API] -->|extract.py| B[(Raw CSVs)]
+    B -->|transform.py| C{PySpark}
+    C -->|valid rows| D[(Postgres:<br/>clean_prices)]
+    C -->|failed validation| E[(Postgres:<br/>data_quality_log)]
+
+    style A fill:#2b2d42,color:#fff
+    style B fill:#8d99ae,color:#000
+    style C fill:#ef233c,color:#fff
+    style D fill:#2b8a3e,color:#fff
+    style E fill:#c92a2a,color:#fff
+```
 
 ## Setup (Docker)
 
@@ -48,14 +55,28 @@ running container won't pick up the change automatically — recreate it with
 the container shell. You only rebuild the image (`docker compose build`) if
 you change `requirements.txt` or the `Dockerfile` itself.
 
-## Running the pipeline so far
+## Running the pipeline
 
 Inside the container shell:
+
 ```bash
 python src/extract.py
 ```
-Fetches 6 months of daily OHLCV data for 8 tickers via yfinance and saves
-each as a raw, untouched CSV in `raw/`.
+Fetches OHLCV data for a set of tickers via yfinance and saves each as a
+raw, untouched CSV in `raw/`.
+
+```bash
+python src/transform.py
+```
+Reads the raw CSVs into a PySpark DataFrame, cleans and validates the data,
+and computes derived metrics (daily returns, moving averages, volatility)
+using window functions.
+
+```bash
+python src/load.py
+```
+Writes the cleaned data to Postgres via JDBC, and any rows that failed
+validation into a separate data-quality log table.
 
 ## Design notes
 
@@ -63,10 +84,14 @@ each as a raw, untouched CSV in `raw/`.
   no cleaning. This means if a bug is found in the transform logic later,
   the pipeline can be re-run on the same raw data without re-fetching from
   the API — a standard ETL resilience pattern.
-- **Why Spark:** the demo dataset here is small enough to process with plain
-  Pandas, but the transform layer is built on PySpark from the start so the
-  design reflects how it would scale at real trading-data volumes (many
+- **Why Spark:** the transform layer is built on PySpark so the design
+  reflects how it would scale at real trading-data volumes (many
   instruments, tick-level granularity) where a single-machine job breaks down.
 - **Why Docker:** bundles the JVM (required by Spark) and all Python
   dependencies into a single reproducible image, so the environment doesn't
   depend on what's installed on any one machine.
+- **Data quality:** rows that fail validation (e.g. missing values, negative
+  prices) are routed to a quarantine table instead of silently dropped,
+  so failures are visible and auditable.
+- **Idempotency:** loads use upsert logic keyed on (ticker, date), so
+  re-running the pipeline doesn't create duplicate rows.
