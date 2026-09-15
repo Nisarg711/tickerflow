@@ -5,18 +5,22 @@ and loads it into Postgres for querying and analysis.
 
 **Architecture:** API fetch (Python/yfinance) → raw storage → PySpark (transform) → Postgres (load)
 
-```mermaid
-flowchart LR
-    A[yfinance API] -->|extract.py| B[(Raw CSVs)]
-    B -->|transform.py| C{PySpark}
-    C -->|valid rows| D[(Postgres:<br/>clean_prices)]
-    C -->|failed validation| E[(Postgres:<br/>data_quality_log)]
-
-    style A fill:#2b2d42,color:#fff
-    style B fill:#8d99ae,color:#000
-    style C fill:#ef233c,color:#fff
-    style D fill:#2b8a3e,color:#fff
-    style E fill:#c92a2a,color:#fff
+```
+ yfinance API
+      |
+      |  extract.py
+      v
+ Raw CSVs  (raw/)
+      |
+      |  transform.py (PySpark)
+      v
+ Clean + validated data
+      |
+      |  load.py
+      v
+ Postgres
+   |-- clean_prices        (valid rows)
+   |-- data_quality_log    (rows that failed validation)
 ```
 
 ## Setup (Docker)
