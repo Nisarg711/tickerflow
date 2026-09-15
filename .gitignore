@@ -1,0 +1,16 @@
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+spark-warehouse/
+metastore_db/
+derby.log
+raw/*.csv
+raw/*.parquet
+!raw/.gitkeep
+logs/*.log
+!logs/.gitkeep
+.DS_Store
+.vscode/
+.idea/

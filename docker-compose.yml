@@ -1,0 +1,13 @@
+services:
+  pipeline:
+    build: .
+    container_name: TickerFlow
+    env_file:
+      - .env
+    volumes:
+      - .:/app          # live-edit code on your host, runs inside the container
+    ports:
+      - "8000:8000"     # FastAPI (Phase 5)
+      - "8501:8501"     # Streamlit (Phase 5)
+    stdin_open: true
+    tty: true
