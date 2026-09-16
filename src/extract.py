@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 import yfinance as yf
 
-TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "JPM"]
+TICKERS = TICKERS = ["RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "BAJFINANCE.NS"]
 PERIOD = "6mo"     # how far back to pull
 INTERVAL = "1d"    # daily candles
 
