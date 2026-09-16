@@ -33,7 +33,7 @@ JDBC_PROPERTIES = {
 
 def get_spark():
     return (
-        SparkSession.builder.appName("TickerFlowLoad")
+        SparkSession.builder.appName("SectraLoad")
         .master("local[*]")
         .config("spark.jars.packages", "org.postgresql:postgresql:42.7.3")
         .getOrCreate()

@@ -11,8 +11,8 @@ STAGES = [
     ("Extract", "src/extract.py"),
     ("Transform", "src/transform.py"),
     ("Load", "src/load.py"),
+    ("Analyze", "src/analyze.py"),
 ]
-
 
 def run_stage(name: str, script_path: str) -> bool:
     print(f"\n{'=' * 60}")

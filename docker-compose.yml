@@ -1,7 +1,7 @@
 services:
   pipeline:
     build: .
-    container_name: TickerFlow
+    container_name: Sectra
     env_file:
       - .env
     volumes:
